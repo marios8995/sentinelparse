@@ -1,21 +1,20 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <thread>
 #include <chrono>
 #include "probe.h"
 
 int main() {
-    std::cout << "Starting Sentinel Probe..." << std::endl;
-    SystemStats stats = collect_stats();
-    std::string test = format_as_json(stats);
-    std::cout << test;
-    // while (true) {
-    //     double cpu = get_cpu_usage();
-    //
-    //     std::cout << "{\"cpu\": " << cpu << "}" << std::endl;
-    //
-    //     std::this_thread::sleep_for(std::chrono::seconds(2));
-    // }
-    return 0;
+    try {
+        SystemStats stats = collect_stats();
+        std::string json_output = format_as_json(stats);
+        std::cout << json_output << std::endl;
+        return 0;
+    } catch (const std::exception& e) {
+        std::cerr << "{\"error\": \"" << e.what() << "\"}" << std::endl;
+        return 1;
+    } catch (...) {
+        std::cerr << "{\"error\": \"Unknown critical failure\"}" << std::endl;
+        return 1;
+    }
 }
