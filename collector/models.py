@@ -64,3 +64,4 @@ class PartitionInfo(Base):
 
     disk_id = Column(Integer, ForeignKey('disk_info.id'))
     disk = relationship("DiskInfo", back_populates="partitions")
+

@@ -5,8 +5,10 @@ import time
 def main():
     print("Sentinel collector started.")
     tick_counter = 0
+    interval = 10
     try:
         while True:
+            start_time = time.perf_counter()
             data = get_probe_data()
             save_snapshot(data)
 
@@ -14,7 +16,13 @@ def main():
                 cleanup_data()
 
             tick_counter += 1
-            time.sleep(10)
+            elapsed_time = time.perf_counter() - start_time
+            sleep_time = interval - elapsed_time
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+            else:
+                print(f"Warning: Probe took {elapsed_time:.2f}s, skipping sleep to catch up!")
+
     except KeyboardInterrupt:
         print("Sentinel collector stopped.")
     except Exception as e:

@@ -75,7 +75,7 @@ def save_snapshot(data):
     finally:
         session.close()
 
-def cleanup_data(days_to_keep=7):
+def cleanup_data(days_to_keep: int = 7):
     session = Session()
     try:
         cutoff_date = datetime.now() - timedelta(days=days_to_keep)
