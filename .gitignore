@@ -3,7 +3,9 @@ cmake-build-release/
 .idea/
 *.o
 *.a
+*.db
 sentinel
 probe/bin/
 probe/cmake-build-debug/
 probe/cmake-build-release/
+collector/databases
