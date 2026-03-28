@@ -4,8 +4,13 @@ cmake-build-release/
 *.o
 *.a
 *.db
+*.sqlite3
 sentinel
 probe/bin/
 probe/cmake-build-debug/
 probe/cmake-build-release/
 collector/databases
+venv/
+.venv/
+env/
+.vscore/
