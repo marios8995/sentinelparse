@@ -17,7 +17,7 @@ def get_probe_data():
         result = subprocess.run([str(bin_path)], capture_output=True, text=True, check=True)
         return json.loads(result.stdout)
     except subprocess.CalledProcessError as err:
-        print(f"Probe Failed! Error: {err.stderr}")
+        print(f"Probe Failed! Error: {err}")
     except FileNotFoundError:
         print(f"Could not find probe at {bin_path}.")
     except json.JSONDecodeError:

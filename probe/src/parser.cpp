@@ -31,6 +31,15 @@ SystemStats collect_stats() {
     return stats;
 }
 
+std::string win_json_backslash_fix(std::string str) {
+    size_t start_pos = 0;
+    while((start_pos = str.find("\\", start_pos)) != std::string::npos) {
+        str.replace(start_pos, 1, "\\\\");
+        start_pos += 2; // Move past the newly inserted double backslash
+    }
+    return str;
+}
+
 std::string format_as_json(const SystemStats& stats) {
     std::stringstream ss;
     ss << "{";
@@ -56,7 +65,7 @@ std::string format_as_json(const SystemStats& stats) {
         const auto& disk = stats.disks[i];
         ss << "{";
         ss << std::format("\"device_name\": \"{}\", \"read_kbps\": {:.2f}, \"write_kbps\": {:.2f}, \"is_removable\": {}",
-            disk.device_name, disk.read_kbps, disk.write_kbps, (disk.is_removable ? "true" : "false"));
+            win_json_backslash_fix(disk.device_name), disk.read_kbps, disk.write_kbps, (disk.is_removable ? "true" : "false"));
 
         ss << ", \"partitions\": [";
         bool first_partition = true;
@@ -77,7 +86,7 @@ std::string format_as_json(const SystemStats& stats) {
                 }
                 ss << std::format(
                     "{{\"name\": \"{}\", \"mount_point\": \"{}\", \"device\": \"{}\", \"total\": {}, \"available\": {}, \"percent_used\": {:.2f}}}",
-                    partition.name, partition.mount_point, partition.device, partition.total, partition.available, partition.percent_used
+                    win_json_backslash_fix(partition.name), win_json_backslash_fix(partition.mount_point), win_json_backslash_fix(partition.device), partition.total, partition.available, partition.percent_used
                 );
                 first_partition = false;
             }

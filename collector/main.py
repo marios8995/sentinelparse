@@ -12,7 +12,6 @@ def main():
 
             if tick_counter % 360 == 0:
                 cleanup_data()
-                cleanup_data(7)
 
             tick_counter += 1
             time.sleep(10)

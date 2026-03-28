@@ -3,8 +3,10 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine import Engine
 from models import Base, Snapshot, CoreUsage, DiskInfo, PartitionInfo
 import time
+import os
 from datetime import datetime, timedelta
 
+os.makedirs("databases", exist_ok=True)
 DB_PATH = "sqlite:///databases/sentinel.db"
 engine = create_engine(DB_PATH)
 
@@ -19,6 +21,7 @@ Session = sessionmaker(bind=engine)
 
 def convert_time(unix_time):
     parsed_time = datetime.fromtimestamp(unix_time) if unix_time else datetime.now()
+    return parsed_time
 
 def save_snapshot(data):
     if not data:
