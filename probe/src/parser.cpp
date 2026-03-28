@@ -760,24 +760,38 @@ std::string format_as_json(const SystemStats& stats) {
     ss << "\"disks\": [";
     for (size_t i = 0; i < stats.disks.size(); ++i) {
         const auto& disk = stats.disks[i];
-        ss << std::format(
-            "{{\"device_name\": \"{}\", \"read_kbps\": {:.2f}, \"write_kbps\": {:.2f}, \"is_removable\": {}}}",
-            disk.device_name, disk.read_kbps, disk.write_kbps, (disk.is_removable ? "true" : "false")
-        );
-        if (i < stats.disks.size() - 1) {
-            ss << ", ";
-        }
-    }
-    ss << "], ";
+        ss << "{";
+        ss << std::format("\"device_name\": \"{}\", \"read_kbps\": {:.2f}, \"write_kbps\": {:.2f}, \"is_removable\": {}",
+            disk.device_name, disk.read_kbps, disk.write_kbps, (disk.is_removable ? "true" : "false"));
 
-    ss << "\"partitions\": [";
-    for (size_t i = 0; i < stats.partitions.size(); ++i) {
-        const auto& partition = stats.partitions[i];
-        ss << std::format(
-            "{{\"name\": \"{}\", \"mount_point\": \"{}\", \"device\": \"{}\", \"total\": {}, \"available\": {}, \"percent_used\": {:.2f}}}",
-            partition.name, partition.mount_point, partition.device, partition.total, partition.available, partition.percent_used
-        );
-        if (i < stats.partitions.size() - 1) {
+        ss << ", \"partitions\": [";
+        bool first_partition = true;
+        for (const auto& partition : stats.partitions) {
+            bool match = false;
+#ifdef _WIN32
+            if (partition.device == disk.device_name) {
+                match = true;
+            }
+#else
+            if (partition.device.find(disk.device_name) != std::string::npos) {
+                match = true;
+            }
+#endif
+            if (match) {
+                if (!first_partition) {
+                    ss << ", ";
+                }
+                ss << std::format(
+                    "{{\"name\": \"{}\", \"mount_point\": \"{}\", \"device\": \"{}\", \"total\": {}, \"available\": {}, \"percent_used\": {:.2f}}}",
+                    partition.name, partition.mount_point, partition.device, partition.total, partition.available, partition.percent_used
+                );
+                first_partition = false;
+            }
+        }
+        ss << "]";
+        ss << "}";
+
+        if (i < stats.disks.size() - 1) {
             ss << ", ";
         }
     }
