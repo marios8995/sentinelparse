@@ -89,98 +89,92 @@ std::vector<PartitionInfo> get_partition_info() {
 #endif
 }
 
-std::map<std::string, std::pair<unsigned long, unsigned long>> get_disk_stats(const std::set<std::string>& devices) {
+std::map<std::string, std::pair<unsigned long long, unsigned long long>> get_raw_disk_counters(const std::set<std::string>& devices) {
+    std::map<std::string, std::pair<unsigned long long, unsigned long long>> stats;
 #ifdef _WIN32
-    std::map<std::string, std::pair<unsigned long, unsigned long>> stats;
-    return stats;
+    for (const auto& dev : devices) {
+        HANDLE hDevice = CreateFileA(dev.c_str(), 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+        if (hDevice != INVALID_HANDLE_VALUE) {
+            DISK_PERFORMANCE perf;
+            DWORD bytesReturned;
+            if (DeviceIoControl(hDevice, IOCTL_DISK_GET_PERFORMANCE, NULL, 0, &perf, sizeof(perf), &bytesReturned, NULL)) {
+                stats[dev] = { (unsigned long long)perf.BytesRead.QuadPart, (unsigned long long)perf.BytesWritten.QuadPart };
+            }
+            CloseHandle(hDevice);
+        }
+    }
 #else
-    std::map<std::string, std::pair<unsigned long, unsigned long>> stats;
     std::ifstream diskstats("/proc/diskstats");
     std::string line;
     while (std::getline(diskstats, line)) {
         std::stringstream ss(line);
         unsigned int major, minor;
         std::string device_name;
-        unsigned long reads, read_sectors, writes, write_sectors;
         ss >> major >> minor >> device_name;
+
         if (devices.count(device_name)) {
-            ss >> reads >> read_sectors >> writes >> write_sectors;
-            stats[device_name] = {read_sectors, write_sectors};
+            // We need to skip to field 6 (Sectors Read) and field 10 (Sectors Written)
+            unsigned long long f1, f2, sectors_read, f4, f5, f6, sectors_written;
+            ss >> f1 >> f2 >> sectors_read >> f4 >> f5 >> f6 >> sectors_written;
+
+            // Linux sectors are almost always 512 bytes
+            stats[device_name] = { sectors_read * 512, sectors_written * 512 };
         }
     }
-    return stats;
 #endif
+    return stats;
 }
 
 std::vector<DiskInfo> get_disk_info(const std::vector<PartitionInfo>& partition_info) {
-#ifdef _WIN32
     std::set<std::string> device_names;
     std::map<std::string, std::string> device_to_root;
+
     for (const auto& p : partition_info) {
+#ifdef _WIN32
         if (!p.device.empty()) {
             device_names.insert(p.device);
-            if (device_to_root.find(p.device) == device_to_root.end()) {
-                device_to_root[p.device] = p.mount_point;
-            }
+            device_to_root[p.device] = p.mount_point;
         }
-    }
-    auto stats1 = get_disk_stats(device_names);
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    auto stats2 = get_disk_stats(device_names);
-    std::vector<DiskInfo> disk_infos;
-    for (const auto& device_name : device_names) {
-        DiskInfo info;
-        info.device_name = device_name;
-        UINT drive_type = GetDriveTypeA(device_to_root[device_name].c_str());
-        info.is_removable = (drive_type == DRIVE_REMOVABLE || drive_type == DRIVE_CDROM);
-        if (stats1.count(device_name) && stats2.count(device_name)) {
-            auto read_delta = stats2.at(device_name).first - stats1.at(device_name).first;
-            auto write_delta = stats2.at(device_name).second - stats1.at(device_name).second;
-            info.read_kbps = static_cast<double>(read_delta) / 1024.0;
-            info.write_kbps = static_cast<double>(write_delta) / 1024.0;
-        }
-        disk_infos.push_back(info);
-    }
-    return disk_infos;
 #else
-    std::set<std::string> device_names;
-    for (const auto& p : partition_info) {
         std::string dev_name = p.device.substr(p.device.find_last_of('/') + 1);
         std::string base_name = dev_name;
-        size_t p_pos = base_name.find_last_of('p');
-        bool is_nvme_or_mmc = (base_name.find("nvme") == 0 || base_name.find("mmcblk") == 0);
-        if (is_nvme_or_mmc && p_pos != std::string::npos && p_pos > 0 && isdigit(base_name[p_pos + 1])) {
-            base_name.erase(p_pos);
+        // Logic to strip partition numbers (e.g., sda1 -> sda, nvme0n1p1 -> nvme0n1)
+        if (base_name.find("nvme") == 0 || base_name.find("mmcblk") == 0) {
+            size_t p_pos = base_name.find_last_of('p');
+            if (p_pos != std::string::npos && p_pos > 0 && isdigit(base_name[p_pos+1])) base_name.erase(p_pos);
         } else {
-            size_t last_digit_pos = base_name.find_last_of("0123456789");
-            if (last_digit_pos != std::string::npos && last_digit_pos == base_name.length() - 1) {
-                while (!base_name.empty() && isdigit(base_name.back())) {
-                    base_name.pop_back();
-                }
-            }
+            while (!base_name.empty() && isdigit(base_name.back())) base_name.pop_back();
         }
         device_names.insert(base_name);
+#endif
     }
 
-    auto stats1 = get_disk_stats(device_names);
+    auto s1 = get_raw_disk_counters(device_names);
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    auto stats2 = get_disk_stats(device_names);
+    auto s2 = get_raw_disk_counters(device_names);
 
     std::vector<DiskInfo> disk_infos;
-    for (const auto& device_name : device_names) {
+    for (const auto& name : device_names) {
         DiskInfo info;
-        info.device_name = device_name;
-        if (stats1.count(device_name) && stats2.count(device_name)) {
-            auto read_delta = stats2[device_name].first - stats1[device_name].first;
-            auto write_delta = stats2[device_name].second - stats1[device_name].second;
-            info.read_kbps = (static_cast<double>(read_delta) * 512) / 1024.0;
-            info.write_kbps = (static_cast<double>(write_delta) * 512) / 1024.0;
-            std::ifstream file("/sys/block/" + device_name + "/removable");
-            int val;
-            info.is_removable = (file >> val) && (val == 1);
+        info.device_name = name;
+        if (s1.count(name) && s2.count(name)) {
+            double read_bytes = (double)(s2[name].first - s1[name].first);
+            double write_bytes = (double)(s2[name].second - s1[name].second);
+
+            // Convert to KB/s
+            info.read_kbps = read_bytes / 1024.0;
+            info.write_kbps = write_bytes / 1024.0;
         }
+
+#ifdef _WIN32
+        UINT drive_type = GetDriveTypeA(device_to_root[name].c_str());
+        info.is_removable = (drive_type == DRIVE_REMOVABLE || drive_type == DRIVE_CDROM);
+#else
+        std::ifstream file("/sys/block/" + name + "/removable");
+        int val;
+        info.is_removable = (file >> val) && (val == 1);
+#endif
         disk_infos.push_back(info);
     }
     return disk_infos;
-#endif
 }
