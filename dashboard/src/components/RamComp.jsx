@@ -19,7 +19,7 @@ export default function RamComp({data}) {
     const offset = circumference - (percentage / 100) * circumference;
 
     return (
-        <div className="bg-ctp-light-base dark:bg-ctp-dark-base p-6 rounded-2xl shadow-xl border-2 border-ctp-light-surface1 dark:border-ctp-dark-surface1 flex flex-col items-center w-full sm:w-1/2 lg:w-1/3 h-96">
+        <div className="bg-ctp-light-base dark:bg-ctp-dark-base p-6 rounded-2xl shadow-xl border-2 border-ctp-light-surface1 dark:border-ctp-dark-surface1 flex flex-col items-center flex-1 min-w-full lg:min-w-0 h-96">
             <h2 className="text-xl font-bold text-ctp-light-text dark:text-ctp-dark-text mb-8 tracking-widest self-center">RAM</h2>
 
             <div className="relative flex items-center justify-center group mt-4">

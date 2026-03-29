@@ -18,7 +18,7 @@ export default function NetComp({ data }) {
   const uploadKB = formatSpeed(data.net_up);
 
   return (
-    <div className="bg-ctp-light-base dark:bg-ctp-dark-base p-6 rounded-2xl shadow-xl border-2 border-ctp-light-surface1 dark:border-ctp-dark-surface1 flex flex-col w-full sm:w-1/2 lg:w-1/3 h-96">
+    <div className="bg-ctp-light-base dark:bg-ctp-dark-base p-6 rounded-2xl shadow-xl border-2 border-ctp-light-surface1 dark:border-ctp-dark-surface1 flex flex-col flex-1 min-w-full lg:min-w-0 h-96">
       {/* Centered Title */}
       <h2 className="text-xl font-bold text-ctp-light-text dark:text-ctp-dark-text mb-8 text-center uppercase tracking-widest">
         Network

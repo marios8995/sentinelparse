@@ -97,7 +97,7 @@ std::map<std::string, std::pair<unsigned long long, unsigned long long>> get_raw
         if (hDevice != INVALID_HANDLE_VALUE) {
             DISK_PERFORMANCE perf;
             DWORD bytesReturned;
-            if (DeviceIoControl(hDevice, IOCTL_DISK_GET_PERFORMANCE, NULL, 0, &perf, sizeof(perf), &bytesReturned, NULL)) {
+            if (DeviceIoControl(hDevice, IOCTL_DISK_PERFORMANCE, NULL, 0, &perf, sizeof(perf), &bytesReturned, NULL)) {
                 stats[dev] = { (unsigned long long)perf.BytesRead.QuadPart, (unsigned long long)perf.BytesWritten.QuadPart };
             }
             CloseHandle(hDevice);
