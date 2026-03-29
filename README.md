@@ -5,7 +5,7 @@ A hardware monitoring solution that bridges the gap between low-level system met
 ### 🛠️ The Stack
 - **Backend:** Python & C++ for data extraction.
 - **Database:** SQLite3 for persistent logging of system stats.
-- **Frontend:** React (TypeScript) for real-time visualization. *(WIP)*
+- **Frontend:** React (TypeScript) for real-time visualization.
 - **Deployment:** Dockerized for environment consistency. *(WIP)*
 
 ### 🚀 Key Features
@@ -16,6 +16,6 @@ A hardware monitoring solution that bridges the gap between low-level system met
 ### 🔧 Setup & Usage
 1. Clone the repository.
 2. Run `docker-compose up` to start the backend and frontend services.
-3. Access the dashboard at `localhost:3000`.
+3. Access the dashboard at `localhost:5173`.
 
 *Built as a deep dive into full-stack integration and system-level telemetry.*
