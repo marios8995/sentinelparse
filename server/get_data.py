@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-DB_PATH = f"sqlite:///{BASE_DIR}/collector/databases/sentinel.db"
+DB_PATH = f"sqlite:///{BASE_DIR}/databases/sentinel.db"
 engine = create_engine(DB_PATH)
 Session = sessionmaker(bind=engine)
 

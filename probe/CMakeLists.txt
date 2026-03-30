@@ -23,3 +23,9 @@ if(WIN32)
         target_link_options(SentinelProbe PRIVATE -static -static-libgcc -static-libstdc++)
     endif()
 endif()
+
+set_target_properties(SentinelProbe PROPERTIES 
+    RUNTIME_OUTPUT_DIRECTORY "$<1:${CMAKE_SOURCE_DIR}/bin>"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "$<1:${CMAKE_SOURCE_DIR}/bin>"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "$<1:${CMAKE_SOURCE_DIR}/bin>"
+)
