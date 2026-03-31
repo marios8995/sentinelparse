@@ -15,21 +15,21 @@ $DBPath = Join-Path $RootPath "databases/sentinel.db"
 $env:DATABASE_URL = "sqlite:///$DBPath"
 
 Write-Host "Starting Collector..." -NoNewline
-Start-Job -Name "SentinelCollector" -ScriptBlock {
-    param($path) cd $path; .\.venv\Scripts\python collector/main.py
-} -ArgumentList $RootPath | Out-Null
+Start-Process -FilePath "powershell.exe" `
+    -ArgumentList "-NoProfile -Command `".\.venv\Scripts\python collector/main.py`"" `
+    -WorkingDirectory $RootPath -WindowStyle Hidden
 Write-Host " [OK]" -ForegroundColor Green
 
 Write-Host "Starting API..." -NoNewline
-Start-Job -Name "SentinelAPI" -ScriptBlock {
-    param($path) cd $path; .\.venv\Scripts\python -m uvicorn server.api:app --host 0.0.0.0 --port 8000
-} -ArgumentList $RootPath | Out-Null
+Start-Process -FilePath "powershell.exe" `
+    -ArgumentList "-NoProfile -Command `".\.venv\Scripts\python -m uvicorn server.api:app --host 0.0.0.0 --port 8000`"" `
+    -WorkingDirectory $RootPath -WindowStyle Hidden
 Write-Host " [OK]" -ForegroundColor Green
 
 Write-Host "Starting Dashboard..." -NoNewline
-Start-Job -Name "SentinelDashboard" -ScriptBlock {
-    param($path) cd $path/dashboard; npm.cmd run dev -- --host
-} -ArgumentList $RootPath | Out-Null
+Start-Process -FilePath "powershell.exe" `
+    -ArgumentList "-NoProfile -Command `"npm.cmd run dev -- --host`"" `
+    -WorkingDirectory "$RootPath\dashboard" -WindowStyle Hidden
 Write-Host " [OK]" -ForegroundColor Green
 
 Write-Host ""
