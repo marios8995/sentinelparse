@@ -17,3 +17,4 @@ env/
 probe/build/
 databases/
 __pycache__
+maintenance_state.json

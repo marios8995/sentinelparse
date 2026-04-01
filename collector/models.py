@@ -65,3 +65,38 @@ class PartitionInfo(Base):
     disk_id = Column(Integer, ForeignKey('disk_info.id'))
     disk = relationship("DiskInfo", back_populates="partitions")
 
+class AggregateSnap(Base):
+    __tablename__ = 'agr_snapshots'
+    id = Column(Integer, primary_key=True)
+    timestamp = Column(DateTime, default=datetime.now)
+
+    cpu_overall = Column(Float)
+    cpu_temp = Column(Float)
+
+    ram_usage = Column(Float)
+
+    net_down = Column(Integer)
+    net_up = Column(Integer)
+
+    disks = relationship("DiskInfoAgr", back_populates="snapshot", cascade="all, delete-orphan")
+
+class DiskInfoAgr(Base):
+    __tablename__ = 'disk_info_agr'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+
+    snapshot_id = Column(Integer, ForeignKey('agr_snapshots.id'))
+    snapshot = relationship("AggregateSnap", back_populates="disks")
+
+    partitions = relationship("PartitionInfoAgr", back_populates="disk", cascade="all, delete-orphan")
+
+class PartitionInfoAgr(Base):
+    __tablename__ = 'partition_info_agr'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    device = Column(String)
+    mount_point = Column(String)
+    bytes_dif = Column(Integer)
+
+    disk_id = Column(Integer, ForeignKey('disk_info_agr.id'))
+    disk = relationship("DiskInfoAgr", back_populates="partitions")
