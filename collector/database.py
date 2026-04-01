@@ -103,16 +103,16 @@ def _generic_cleanup(session_maker, model, time_delta, label):
         session.close()
 
 def cleanup_data_hourly():
-    _generic_cleanup(Session, Snapshot, timedelta(hours=1), "raw 10-second")
+    _generic_cleanup(Session, Snapshot, timedelta(hours=24), "raw 10-second")
 
 def cleanup_data_daily():
-    _generic_cleanup(SessionHourly, AggregateSnap, timedelta(days=1), "hourly")
+    _generic_cleanup(SessionHourly, AggregateSnap, timedelta(days=30), "hourly")
 
 def cleanup_data_monthly():
-    _generic_cleanup(SessionDaily, AggregateSnap, timedelta(days=30), "daily")
+    _generic_cleanup(SessionDaily, AggregateSnap, timedelta(days=365), "daily")
 
 def cleanup_data_yearly():
-    _generic_cleanup(SessionMonthly, AggregateSnap, timedelta(days=365), "monthly")
+    _generic_cleanup(SessionMonthly, AggregateSnap, timedelta(days=3653), "monthly")
 
 
 def aggregate_hourly_data():
