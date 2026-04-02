@@ -1,64 +1,35 @@
-import {useState, useEffect} from 'react'
-import CpuComp from './components/CpuComp'
-import RamComp from './components/RamComp'
-import NetComp from './components/NetComp'
-import SysComp from './components/SysComp'
-import DiskComp from './components/DiskComp'
+import { useState } from 'react'
 import ThemeToggle from './components/ThemeToggle'
-
-const getApiUrl = () => {
-  const hostname = window.location.hostname;
-  return `http://${hostname}:8000/api/latest`
-}
+import DashboardLatest from './pages/DashboardLatest'
+import DashboardHistorical from './pages/DashboardHistorical'
 
 function App() {
-  const [hardwareData, setHardwareData] = useState(null)
-  const [error, setError] = useState(null)
+  const [view, setView] = useState('latest')
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(getApiUrl());
-        if (!response.ok) throw new Error("Network response was not ok")
-        
-        const data = await response.json()
-        setHardwareData(data)
-      } catch (err) {
-        setError(err.message)
-      }
-    }
-
-    fetchData()
-    const intervalId = setInterval(fetchData, 2000)
-
-    return () => clearInterval(intervalId)
-}, [])
+  const btnClass = (v) => `px-3 py-1 rounded-md transition-colors ${
+    view === v 
+    ? 'bg-ctp-light-mauve dark:bg-ctp-dark-mauve text-ctp-light-surface0 dark:text-ctp-dark-surface0' 
+    : 'bg-ctp-light-surface0 dark:bg-ctp-dark-surface0 hover:bg-ctp-light-surface1 hover:dark:bg-ctp-dark-surface1 text-ctp-light-text dark:text-ctp-dark-text'
+  }`
 
   return (
-    <div>
-
-      {error && <p className="text-red-500">API Error: {error}</p>}
-
-      {!hardwareData && !error && <p className="text-ctp-light-text dark:text-ctp-dark-text">Connecting to probe...</p>}
-      
-      {hardwareData && (
-        <div className="bg-ctp-light-crust dark:bg-ctp-dark-crust font-sans p-2 md:p-4 text-ctp-light-text dark:text-ctp-dark-text">
-          <div className="bg-ctp-light-crust dark:bg-ctp-dark-crust pb-2">
-            <ThemeToggle />
-          </div>
-          <main>
-            <div className="pb-2 pt-2 md:pb-4 md:pt-4">
-              <CpuComp data={hardwareData} />
-            </div>
-            <div className="flex flex-wrap lg:flex-nowrap gap-2 md:gap-4 justify-center">
-              <RamComp data={hardwareData} />
-              <NetComp data={hardwareData} />
-              <SysComp data={hardwareData} />
-            </div>
-            <DiskComp data={hardwareData} />
-          </main>
+    <div className="min-h-screen bg-ctp-light-crust dark:bg-ctp-dark-crust text-ctp-light-text dark:text-ctp-dark-text font-sans p-2 md:p-4">
+      <header className="flex items-center justify-between border-b border-ctp-light-surface0 dark:border-ctp-dark-surface0 pb-4 mb-4">
+        <div className="flex gap-2 items-center">
+          <h1 className="text-xl font-bold mr-4 hidden md:block">Sentinel</h1>
+          <button onClick={() => setView('latest')} className={btnClass('latest')}>
+            Latest
+          </button>
+          <button onClick={() => setView('historical')} className={btnClass('historical')}>
+            Historical
+          </button>
         </div>
-      )}
+        <ThemeToggle />
+      </header>
+
+      <main>
+        {view === 'latest' ? <DashboardLatest /> : <DashboardHistorical />}
+      </main>
     </div>
   )
 }

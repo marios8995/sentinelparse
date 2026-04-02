@@ -5,7 +5,6 @@ cd "$ROOT_PATH"
 
 echo "--- SentinelParse Linux Build ---"
 
-# 1. Verification Loop
 REQUIRED_TOOLS=("cmake" "g++" "python3" "npm")
 for tool in "${REQUIRED_TOOLS[@]}"; do
     if ! command -v $tool &> /dev/null; then
@@ -14,18 +13,15 @@ for tool in "${REQUIRED_TOOLS[@]}"; do
     fi
 done
 
-# 2. Compile C++ Probe (Standard CMake logic)
 echo "[1/3] Compiling C++ Probe..."
 mkdir -p probe/build
 cmake -S probe -B probe/build
 cmake --build probe/build --target SentinelProbe
 
-# 3. Python Environment (Matching Windows venv logic)
 echo "[2/3] Setting up Python venv..."
 python3 -m venv .venv
 ./.venv/bin/pip install -r requirements.txt
 
-# 4. Dashboard Dependencies
 echo "[3/3] Installing Dashboard modules..."
 cd dashboard && npm install
 cd "$ROOT_PATH"

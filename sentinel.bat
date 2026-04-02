@@ -19,9 +19,9 @@ echo ======================================================
 echo                    SENTINEL PROBE
 echo ======================================================
 echo.
-echo  [1] Setup System (Install deps, Build C++, Firewall)
-echo  [2] Start Services (Collector, API, Dashboard)
-echo  [3] Stop All Services (Kill background jobs)
+echo  [1] Setup System
+echo  [2] Start Services
+echo  [3] Stop All Services
 echo  [4] Exit
 echo.
 echo ======================================================
