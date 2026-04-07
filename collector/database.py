@@ -1,6 +1,8 @@
+from logging import DEBUG
+
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
-from models import Base, Snapshot, CoreUsage, DiskInfo, PartitionInfo, AggregateSnap, DiskInfoAgr, PartitionInfoAgr
+from models import BaseRaw, BaseAgr, Snapshot, CoreUsage, DiskInfo, PartitionInfo, AggregateSnap, DiskInfoAgr, PartitionInfoAgr
 import time
 import os
 from datetime import datetime, timedelta
@@ -22,10 +24,13 @@ def apply_pragma(dbapi_connection, connection_record):
     cursor.execute("PRAGMA foreign_keys=ON")
     cursor.close()
 
-
 for eng in [engine, engine_hourly, engine_daily, engine_monthly, engine_yearly]:
     event.listen(eng, "connect", apply_pragma)
-    Base.metadata.create_all(eng)
+
+BaseRaw.metadata.create_all(engine)
+
+for eng in [engine_hourly, engine_daily, engine_monthly, engine_yearly]:
+    BaseAgr.metadata.create_all(eng)
 
 Session = sessionmaker(bind=engine)
 SessionHourly = sessionmaker(bind=engine_hourly)
@@ -102,18 +107,17 @@ def _generic_cleanup(session_maker, model, time_delta, label):
     finally:
         session.close()
 
-def cleanup_data_hourly():
+def cleanup_raw_data():
     _generic_cleanup(Session, Snapshot, timedelta(hours=24), "raw 10-second")
 
-def cleanup_data_daily():
+def cleanup_hourly_data():
     _generic_cleanup(SessionHourly, AggregateSnap, timedelta(days=30), "hourly")
 
-def cleanup_data_monthly():
+def cleanup_daily_data():
     _generic_cleanup(SessionDaily, AggregateSnap, timedelta(days=365), "daily")
 
-def cleanup_data_yearly():
+def cleanup_monthly_data():
     _generic_cleanup(SessionMonthly, AggregateSnap, timedelta(days=3653), "monthly")
-
 
 def aggregate_hourly_data():
     session_raw = Session()
@@ -152,29 +156,28 @@ def aggregate_hourly_data():
             net_up=net_up_total
         )
 
+        disk_list = []
         start_free_space = {}
         for disk in first_snap.disks:
-            for part in disk.partitions:
-                if not disk.is_removable:
+            if not disk.is_removable:
+                disk_list.append(disk.name)
+                for part in disk.partitions:
                     start_free_space[part.name] = part.free_bytes
-
         for disk in last_snap.disks:
-            disk_agr = DiskInfoAgr(name=disk.name)
-            for part in disk.partitions:
-                if not disk.is_removable:
-                    continue
+            if disk.name in disk_list:
+                disk_agr = DiskInfoAgr(name=disk.name)
+                for part in disk.partitions:
+                    start_bytes = start_free_space.get(part.name, part.free_bytes)
+                    bytes_dif = start_bytes - part.free_bytes
 
-                start_bytes = start_free_space.get(part.name, part.free_bytes)
-                bytes_dif = start_bytes - part.free_bytes
-
-                part_agr = PartitionInfoAgr(
-                    name=part.name,
-                    device=part.device,
-                    mount_point=part.mount_point,
-                    bytes_dif=bytes_dif
-                )
-                disk_agr.partitions.append(part_agr)
-            hourly_snap.disks.append(disk_agr)
+                    part_agr = PartitionInfoAgr(
+                        name=part.name,
+                        device=part.device,
+                        mount_point=part.mount_point,
+                        bytes_dif=bytes_dif
+                        )
+                    disk_agr.partitions.append(part_agr)
+                hourly_snap.disks.append(disk_agr)
 
         session_hourly.add(hourly_snap)
         session_hourly.commit()

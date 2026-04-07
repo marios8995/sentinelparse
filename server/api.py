@@ -12,10 +12,6 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-@app.get("/api/get")
-async def get_snapshot(db_id: int = 0):
-    return get_data_by_id(db_id)
-
 @app.get("/api/latest/raw")
 async def latest_snapshot():
     return get_latest_data()
@@ -35,10 +31,6 @@ async def latest_snapshot_monthly():
 @app.get("/api/latest/yearly")
 async def latest_snapshot_yearly():
     return get_latest_aggregate_data("yearly")
-
-@app.get("/api/historical/raw")
-async def historical_snapshots_raw():
-    return get_historical_raw_data(24)
 
 @app.get("/api/historical/hourly")
 async def historical_snapshots_hourly():

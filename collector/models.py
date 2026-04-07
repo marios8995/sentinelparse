@@ -2,9 +2,10 @@ from sqlalchemy import Column, Integer, Float, String, Boolean, DateTime, Foreig
 from sqlalchemy.orm import relationship, declarative_base
 from datetime import datetime
 
-Base = declarative_base()
+BaseRaw = declarative_base()
+BaseAgr = declarative_base()
 
-class Snapshot(Base):
+class Snapshot(BaseRaw):
     __tablename__ = 'snapshots'
 
     id = Column(Integer, primary_key=True)
@@ -28,18 +29,18 @@ class Snapshot(Base):
     cpu_cores = relationship("CoreUsage", back_populates="snapshot", cascade="all, delete-orphan")
     disks = relationship("DiskInfo", back_populates="snapshot", cascade="all, delete-orphan")
 
-class CoreUsage(Base):
+class CoreUsage(BaseRaw):
     __tablename__ = 'core_usage'
 
     id = Column(Integer, primary_key=True)
     core_index = Column(Integer)
     usage_percent = Column(Float)
 
-    snapshot_id = Column(Integer, ForeignKey('snapshots.id'))
+    snapshot_id = Column(Integer, ForeignKey('snapshots.id', ondelete="CASCADE"))
     snapshot = relationship("Snapshot", back_populates="cpu_cores")
 
 
-class DiskInfo(Base):
+class DiskInfo(BaseRaw):
     __tablename__ = 'disk_info'
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -47,12 +48,12 @@ class DiskInfo(Base):
     write_speed = Column(Float)
     is_removable = Column(Boolean)
 
-    snapshot_id = Column(Integer, ForeignKey('snapshots.id'))
+    snapshot_id = Column(Integer, ForeignKey('snapshots.id', ondelete="CASCADE"))
     snapshot = relationship("Snapshot", back_populates="disks")
 
     partitions = relationship("PartitionInfo", back_populates="disk", cascade="all, delete-orphan")
 
-class PartitionInfo(Base):
+class PartitionInfo(BaseRaw):
     __tablename__ = 'partition_info'
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -62,10 +63,10 @@ class PartitionInfo(Base):
     free_bytes = Column(Integer)
     usage_percent = Column(Float)
 
-    disk_id = Column(Integer, ForeignKey('disk_info.id'))
+    disk_id = Column(Integer, ForeignKey('disk_info.id', ondelete="CASCADE"))
     disk = relationship("DiskInfo", back_populates="partitions")
 
-class AggregateSnap(Base):
+class AggregateSnap(BaseAgr):
     __tablename__ = 'agr_snapshots'
     id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, default=datetime.now)
@@ -80,17 +81,17 @@ class AggregateSnap(Base):
 
     disks = relationship("DiskInfoAgr", back_populates="snapshot", cascade="all, delete-orphan")
 
-class DiskInfoAgr(Base):
+class DiskInfoAgr(BaseAgr):
     __tablename__ = 'disk_info_agr'
     id = Column(Integer, primary_key=True)
     name = Column(String)
 
-    snapshot_id = Column(Integer, ForeignKey('agr_snapshots.id'))
+    snapshot_id = Column(Integer, ForeignKey('agr_snapshots.id', ondelete="CASCADE"))
     snapshot = relationship("AggregateSnap", back_populates="disks")
 
     partitions = relationship("PartitionInfoAgr", back_populates="disk", cascade="all, delete-orphan")
 
-class PartitionInfoAgr(Base):
+class PartitionInfoAgr(BaseAgr):
     __tablename__ = 'partition_info_agr'
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -98,5 +99,5 @@ class PartitionInfoAgr(Base):
     mount_point = Column(String)
     bytes_dif = Column(Integer)
 
-    disk_id = Column(Integer, ForeignKey('disk_info_agr.id'))
+    disk_id = Column(Integer, ForeignKey('disk_info_agr.id', ondelete="CASCADE"))
     disk = relationship("DiskInfoAgr", back_populates="partitions")

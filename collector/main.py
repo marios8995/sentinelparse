@@ -5,7 +5,7 @@ from probe_json import get_probe_data
 from database import (
     save_snapshot,
     aggregate_hourly_data, aggregate_daily_data, aggregate_monthly_data, aggregate_yearly_data,
-    cleanup_data_hourly, cleanup_data_daily, cleanup_data_monthly, cleanup_data_yearly
+    cleanup_raw_data, cleanup_hourly_data, cleanup_daily_data, cleanup_monthly_data
 )
 
 STATE_FILE = "maintenance_state.json"
@@ -48,31 +48,31 @@ class MaintenanceManager:
         now = time.time()
         state_changed = False
 
-        if now - self.state["last_hourly"] >= 3600:
+        if now - self.state["last_hourly"] >= 3595:
             print(f"[{time.strftime('%H:%M:%S')}] Triggering Hourly Maintenance...")
             aggregate_hourly_data()
-            cleanup_data_hourly()
+            cleanup_raw_data()
             self.state["last_hourly"] = now
             state_changed = True
 
-        if now - self.state["last_daily"] >= 86400:
+        if now - self.state["last_daily"] >= 86395:
             print(f"[{time.strftime('%H:%M:%S')}] Triggering Daily Maintenance...")
             aggregate_daily_data()
-            cleanup_data_daily()
+            cleanup_hourly_data()
             self.state["last_daily"] = now
             state_changed = True
 
-        if now - self.state["last_monthly"] >= 2592000:
+        if now - self.state["last_monthly"] >= 2591995:
             print(f"[{time.strftime('%H:%M:%S')}] Triggering Monthly Maintenance...")
             aggregate_monthly_data()
-            cleanup_data_monthly()
+            cleanup_daily_data()
             self.state["last_monthly"] = now
             state_changed = True
 
-        if now - self.state["last_yearly"] >= 31536000:
+        if now - self.state["last_yearly"] >= 31535995:
             print(f"[{time.strftime('%H:%M:%S')}] Triggering Yearly Maintenance...")
             aggregate_yearly_data()
-            cleanup_data_yearly()
+            cleanup_monthly_data()
             self.state["last_yearly"] = now
             state_changed = True
 
@@ -89,10 +89,10 @@ def main():
         while True:
             start_time = time.perf_counter()
 
+            manager.check_and_run()
+
             data = get_probe_data()
             save_snapshot(data)
-
-            manager.check_and_run()
 
             elapsed_time = time.perf_counter() - start_time
             sleep_time = interval - elapsed_time
