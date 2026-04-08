@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import CpuComp from '../components/CpuComp'
-import RamComp from '../components/RamComp'
-import NetComp from '../components/NetComp'
-import SysComp from '../components/SysComp'
-import DiskComp from '../components/DiskComp'
+import CpuComp from '../components/latest/CpuComp'
+import RamComp from '../components/latest/RamComp'
+import NetComp from '../components/latest/NetComp'
+import SysComp from '../components/latest/SysComp'
+import DiskComp from '../components/latest/DiskComp'
 
 const getApiUrl = () => {
   const hostname = window.location.hostname;

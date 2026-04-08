@@ -1,4 +1,8 @@
 import { useState, useEffect } from 'react'
+import CpuHistoryComp from '../components/historical/CpuHistoryComp';
+import RamHistoryComp from '../components/historical/RamHistoryComp';
+import NetHistoryComp from '../components/historical/NetHistoryComp';
+import DiskHistoryComp from '../components/historical/DiskHistoryComp';
 
 const getApiUrl = () => {
   const hostname = window.location.hostname;
@@ -33,11 +37,23 @@ export default function DashboardHistorical() {
     fetchHistory()
   }, [interval])
 
-  const btnClass = (v) => `px-4 py-1.5 rounded-md transition-colors font-medium capitalize ${
-    interval === v 
-    ? 'bg-ctp-light-mauve dark:bg-ctp-dark-mauve text-ctp-light-surface0 dark:text-ctp-dark-surface0' 
-    : 'bg-ctp-light-surface0 dark:bg-ctp-dark-surface0 hover:bg-ctp-light-surface1 hover:dark:bg-ctp-dark-surface1 text-ctp-light-text dark:text-ctp-dark-text'
-  }`
+  const activeColors = {
+    hourly: 'bg-ctp-light-blue dark:bg-ctp-dark-blue',
+    daily: 'bg-ctp-light-green dark:bg-ctp-dark-green',
+    monthly: 'bg-ctp-light-peach dark:bg-ctp-dark-peach',
+    yearly: 'bg-ctp-light-maroon dark:bg-ctp-dark-maroon'
+  }
+
+  const getBtnClass = (span) => {
+    const isActive = interval === span;
+    const baseClasses = "px-4 py-1.5 rounded-md transition-all duration-200 font-medium capitalize border";
+    
+    if (isActive) {
+      return `${baseClasses} ${activeColors[span]} text-ctp-light-surface0 dark:text-ctp-dark-surface0 border-transparent shadow-sm scale-105`;
+    }
+    
+    return `${baseClasses} bg-ctp-light-surface0 dark:bg-ctp-dark-surface0 hover:bg-ctp-light-surface1 hover:dark:bg-ctp-dark-surface1 text-ctp-light-text dark:text-ctp-dark-text border-ctp-light-surface1 dark:border-ctp-dark-surface1`;
+  }
 
   return (
     <div className="space-y-4">
@@ -52,7 +68,7 @@ export default function DashboardHistorical() {
             <button 
               key={span} 
               onClick={() => setIntervalTime(span)} 
-              className={btnClass(span)}
+              className={getBtnClass(span)}
             >
               {span}
             </button>
@@ -60,20 +76,27 @@ export default function DashboardHistorical() {
         </div>
       </div>
 
-      <div className="p-4 bg-ctp-light-mantle dark:bg-ctp-dark-mantle rounded-xl border border-ctp-light-surface0 dark:border-ctp-dark-surface0 min-h-[400px]">
-        {loading && <p className="animate-pulse">Loading historical data...</p>}
-        {error && <p className="text-ctp-light-red dark:text-ctp-dark-red">Error: {error}</p>}
-        
-        {!loading && !error && historyData && (
-          <div className="overflow-auto max-h-[500px] text-xs font-mono opacity-80">
-            {historyData.length === 0 ? (
-              <p className="text-center italic mt-10 opacity-50">No data available for this interval yet.</p>
-            ) : (
-              <pre>{JSON.stringify(historyData, null, 2)}</pre>
-            )}
+      {loading && <div className="p-4 animate-pulse">Loading historical data...</div>}
+      {error && <div className="p-4 text-ctp-light-red dark:text-ctp-dark-red">Error: {error}</div>}
+      
+      {!loading && !error && historyData && (
+        <div className="flex flex-col gap-4">
+          
+          <div className="w-full">
+            <CpuHistoryComp data={historyData} interval={interval} />
           </div>
-        )}
-      </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <RamHistoryComp data={historyData} interval={interval} />
+            <NetHistoryComp data={historyData} interval={interval} />
+          </div>
+
+          <div className="w-full">
+            <DiskHistoryComp data={historyData} interval={interval} />
+          </div>
+
+        </div>
+      )}
 
     </div>
   )

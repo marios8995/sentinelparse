@@ -1,10 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from collector.models import (
-    Base, Snapshot, CoreUsage, DiskInfo, PartitionInfo,
-    AggregateSnap, DiskInfoAgr, PartitionInfoAgr
-)
-import os
+from collector.models import Snapshot, AggregateSnap
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -104,7 +100,6 @@ def get_data_by_id(data_id: int):
     finally:
         session.close()
 
-
 def get_latest_data():
     session = SESSIONS["raw"]()
     try:
@@ -116,33 +111,6 @@ def get_latest_data():
         return {"error": str(e)}
     finally:
         session.close()
-
-
-def get_historical_raw_data(limit: int = 60):
-    session = SESSIONS["raw"]()
-    try:
-        records = session.query(Snapshot).order_by(Snapshot.timestamp.desc()).limit(limit).all()
-        return [raw_data_to_json(data) for data in reversed(records)]
-    except Exception as e:
-        return {"error": str(e)}
-    finally:
-        session.close()
-
-def get_latest_aggregate_data(interval: str):
-    if interval not in SESSIONS or interval == "raw":
-        return {"error": f"Invalid aggregate interval: {interval}"}
-
-    session = SESSIONS[interval]()
-    try:
-        data = session.query(AggregateSnap).order_by(AggregateSnap.timestamp.desc()).first()
-        if not data:
-            return {"error": f"{interval.capitalize()} database is empty"}
-        return agr_data_to_json(data)
-    except Exception as e:
-        return {"error": str(e)}
-    finally:
-        session.close()
-
 
 def get_historical_aggregate_data(interval: str, limit: int = 10):
     if interval not in SESSIONS or interval == "raw":

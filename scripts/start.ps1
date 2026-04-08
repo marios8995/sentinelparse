@@ -28,7 +28,7 @@ Write-Host " [OK]" -ForegroundColor Green
 
 Write-Host "Starting Dashboard..." -NoNewline
 Start-Process -FilePath "powershell.exe" `
-    -ArgumentList "-NoProfile -Command `"npm.cmd run dev -- --host`"" `
+    -ArgumentList "-NoProfile -Command `"npm.cmd run dev -- --host --force`"" `
     -WorkingDirectory "$RootPath\dashboard" -WindowStyle Hidden
 Write-Host " [OK]" -ForegroundColor Green
 

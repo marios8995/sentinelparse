@@ -10,7 +10,7 @@ echo "Starting Sentinel Services in background..."
 
 ./.venv/bin/python collector/main.py > /dev/null 2>&1 & disown
 ./.venv/bin/python -m uvicorn server.api:app --host 0.0.0.0 --port 8000 > /dev/null 2>&1 & disown
-cd dashboard && npm run dev -- --host > /dev/null 2>&1 & disown
+cd dashboard && npm run dev -- --host --force > /dev/null 2>&1 & disown
 
 echo "------------------------------------------------"
 echo "SENTINEL ACTIVE (Linux)"
