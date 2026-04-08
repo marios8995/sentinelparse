@@ -23,7 +23,7 @@ python3 -m venv .venv
 ./.venv/bin/pip install -r requirements.txt
 
 echo "[3/3] Installing Dashboard modules..."
-cd dashboard && npm install && npm install recharts
+cd dashboard && npm install
 cd "$ROOT_PATH"
 
 echo "Setup Complete!"
