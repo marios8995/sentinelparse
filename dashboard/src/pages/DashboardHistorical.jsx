@@ -80,22 +80,30 @@ export default function DashboardHistorical() {
       {error && <div className="p-4 text-ctp-light-red dark:text-ctp-dark-red">Error: {error}</div>}
       
       {!loading && !error && historyData && (
-        <div className="flex flex-col gap-4">
-          
-          <div className="w-full">
-            <CpuHistoryComp data={historyData} interval={interval} />
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <RamHistoryComp data={historyData} interval={interval} />
-            <NetHistoryComp data={historyData} interval={interval} />
-          </div>
-
-          <div className="w-full">
-            <DiskHistoryComp data={historyData} interval={interval} />
-          </div>
-
-        </div>
+        <>
+          {historyData.length < 2 ? (
+            <div className="flex flex-col items-center justify-center p-12 bg-ctp-light-mantle dark:bg-ctp-dark-mantle rounded-xl border border-ctp-light-surface0 dark:border-ctp-dark-surface0 text-center">
+              <div className="mb-4 p-4 rounded-full bg-ctp-light-surface0 dark:bg-ctp-dark-surface0">
+                <svg className="w-12 h-12 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-ctp-light-text dark:text-ctp-dark-text">No Historical Data Yet</h3>
+              <p className="max-w-xs text-sm opacity-60 mt-2">
+                The {interval} database is currently empty or still collecting initial snapshots.
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              <CpuHistoryComp data={historyData} interval={interval} />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <RamHistoryComp data={historyData} interval={interval} />
+                <NetHistoryComp data={historyData} interval={interval} />
+              </div>
+              <DiskHistoryComp data={historyData} interval={interval} />
+            </div>
+          )}
+        </>
       )}
 
     </div>

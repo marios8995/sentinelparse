@@ -19,3 +19,6 @@ databases/
 __pycache__
 maintenance_state.json
 node_modules
+package-lock.json
+dashboard/package-lock.json
+dashboard/node_modules

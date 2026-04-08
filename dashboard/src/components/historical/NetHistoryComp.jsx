@@ -25,13 +25,19 @@ export default function NetHistoryComp({ data, interval }) {
   };
 
   const formatBytes = (bytes, decimals = 1) => {
-    if (!+bytes) return '0 B';
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
-  };
+  if (bytes === 0 || !bytes) return '0 B';
+  const isNegative = bytes < 0;
+  const absBytes = Math.abs(bytes);
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  
+  const i = Math.floor(Math.log(absBytes) / Math.log(k));
+  const safeIndex = Math.max(0, Math.min(i, sizes.length - 1));
+  
+  const value = parseFloat((absBytes / Math.pow(k, safeIndex)).toFixed(dm));
+  return `${isNegative ? '-' : ''}${value} ${sizes[safeIndex]}`;
+};
 
   const sortedAndSafeData = [...data]
     .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
